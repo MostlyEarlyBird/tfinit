@@ -86,16 +86,7 @@ func main() {
 	wd, _ := os.Getwd()
 	names := []string{}
 	var list = make(map[string]bool)
-	// var num int
-	// fmt.Print("How many modules: ")
 
-	// if _, err := fmt.Scanf("%n", &num); err != nil {
-	// 	log.Print("Not a number, ", err)
-	// 	return
-	// }
-	// if num >= 10 {
-	// 	log.Fatal("number is to big please enter a number from  1 to 10")
-	// }
 	for i := 0; i < num; i++ {
 		for true {
 			var name string
