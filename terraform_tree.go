@@ -42,8 +42,9 @@ func generateMain(dirs []string) {
 	f := hclwrite.NewEmptyFile()
 	rootBody := f.Body()
 	terraform := rootBody.AppendNewBlock("terraform", nil)
-	trbody := terraform.Body().AppendNewBlock("required_providers", nil).Body()
-	trbody.SetAttributeValue("aws", cty.ObjectVal(map[string]cty.Value{
+	trbody := terraform.Body()
+	reqbody := trbody.AppendNewBlock("required_providers", nil).Body()
+	reqbody.SetAttributeValue("aws", cty.ObjectVal(map[string]cty.Value{
 		"source":  cty.StringVal("hashicorp/aws"),
 		"version": cty.StringVal("~> 4.16"),
 	}))
@@ -74,10 +75,10 @@ func generateMain(dirs []string) {
 }
 
 func main() {
-    if _,err := os.Stat("main.tf") ; err == nil {
-        log.Fatal("main.tf already exists")
+	if _, err := os.Stat("main.tf"); err == nil {
+		log.Fatal("main.tf already exists")
 
-    }
+	}
 	flag.Usage = Usage
 	flag.Parse()
 	if num == 0 {
@@ -92,7 +93,7 @@ func main() {
 			var name string
 			fmt.Print("Enter a name: ")
 			fmt.Scan(&name)
-			dirpath := path.Join(wd,"modules" ,name)
+			dirpath := path.Join(wd, "modules", name)
 			if list[dirpath] {
 				log.Printf("%s already in list", name)
 			} else if _, err := os.Stat(dirpath); err == nil {
