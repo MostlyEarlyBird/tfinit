@@ -89,7 +89,7 @@ func main() {
 	var list = make(map[string]bool)
 
 	for i := 0; i < num; i++ {
-		for true {
+		for {
 			var name string
 			fmt.Print("Enter a name: ")
 			fmt.Scan(&name)
