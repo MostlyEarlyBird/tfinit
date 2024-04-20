@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/erikgeiser/promptkit/textinput"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
 )
@@ -15,15 +16,16 @@ import (
 var files = []string{"variables.tf", "main.tf", "outputs.tf"}
 var num int
 var defaultTags bool
+
 func init() {
 	flag.IntVar(&num, "n", 0, "number of modules")
-    flag.BoolVar(&defaultTags,"t",false,"add default tags")
+	flag.BoolVar(&defaultTags, "t", false, "add default tags")
 
 }
 func Usage() {
 	fmt.Printf("Usage: %s [-t] [-n int] \n", path.Base(os.Args[0]))
 	flag.PrintDefaults()
-    os.Exit(0)
+	os.Exit(0)
 }
 
 func createDirs(dirs map[string]bool) {
@@ -92,18 +94,34 @@ func main() {
 
 	for i := 0; i < num; i++ {
 		for {
-			var name string
-			fmt.Print("Enter a name: ")
-			fmt.Scan(&name)
-			dirpath := path.Join(wd, "modules", name)
+			// tagName := textinput.New("Enter a name: ")
+			// tagName.AutoComplete = textinput.AutoCompleteFromSlice([]string{
+			// "Owner",
+			// "bootcamp",
+			// "expiration_date",
+			// })
+			moduleImpot := textinput.New("Enter a name")
+			moduleImpot.Validate = func(input string) error {
+				if strings.TrimSpace(input) == "" {
+					return fmt.Errorf("can't be empty")
+				}
+
+				return nil
+			}
+			moduleName, err := moduleImpot.RunPrompt()
+			if err != nil {
+				log.Fatalf("Error %v\n", err)
+			}
+			moduleName = strings.TrimSpace(moduleName)
+			dirpath := path.Join(wd, "modules", moduleName)
 			if list[dirpath] {
-				log.Printf("%s already in list", name)
+				log.Printf("%s already in list", moduleName)
 			} else if _, err := os.Stat(dirpath); err == nil {
-				log.Printf("Directory by the name %s already exist", name)
+				log.Printf("Directory by the name %s already exist", moduleName)
 
 			} else {
 				list[dirpath] = true
-				names = append(names, name)
+				names = append(names, moduleName)
 				break
 			}
 		}
