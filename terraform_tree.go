@@ -14,14 +14,16 @@ import (
 
 var files = []string{"variables.tf", "main.tf", "outputs.tf"}
 var num int
-
+var defaultTags bool
 func init() {
 	flag.IntVar(&num, "n", 0, "number of modules")
+    flag.BoolVar(&defaultTags,"t",false,"add default tags")
 
 }
 func Usage() {
-	fmt.Printf("Usage: %s argument ...\n", path.Base(os.Args[0]))
+	fmt.Printf("Usage: %s [-t] [-n int] \n", path.Base(os.Args[0]))
 	flag.PrintDefaults()
+    os.Exit(0)
 }
 
 func createDirs(dirs map[string]bool) {
