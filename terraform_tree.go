@@ -133,8 +133,7 @@ func main() {
 	list, names := getModules()
     var tags = make(map[string]string)
 	if defaultTags {
-
-		tagInput := textinput.New("Enter a name: ")
+		tagInput := textinput.New("Enter the tag name:")
         valueInput := textinput.New("Enter the value:")
 		tagInput.AutoComplete = textinput.AutoCompleteFromSlice([]string{
 			"Owner",
@@ -145,13 +144,13 @@ func main() {
 		valueInput.Validate = validateInput
 		tagName, err := tagInput.RunPrompt()
 		tagName = strings.TrimSpace(tagName)
-		if err == nil {
+		if err != nil {
 			log.Fatalf("Error %v\n", err)
 		}
 		fmt.Printf("%s\n", tagName)
 		tagValue, err := valueInput.RunPrompt()
 		tagValue = strings.TrimSpace(tagValue)
-        if err == nil {
+        if err != nil {
 			log.Fatalf("Error %v\n", err)
 		}
         tags[tagName]= tagValue
