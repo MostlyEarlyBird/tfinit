@@ -13,6 +13,14 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
+func validateInput(input string) error {
+	if strings.TrimSpace(input) == "" {
+		return fmt.Errorf("can't be empty")
+	} else {
+		return nil
+	}
+}
+
 var files = []string{"variables.tf", "main.tf", "outputs.tf"}
 var num int
 var defaultTags bool
@@ -77,42 +85,25 @@ func generateMain(dirs []string) {
 	}
 
 }
+func getModules() (map[string]bool, []string) {
 
-func main() {
-	if _, err := os.Stat("main.tf"); err == nil {
-		log.Fatal("main.tf already exists")
-
-	}
-	flag.Usage = Usage
-	flag.Parse()
-	if num == 0 {
-		Usage()
-	}
 	wd, _ := os.Getwd()
 	names := []string{}
-	var list = make(map[string]bool)
 
+	var list = make(map[string]bool)
 	for i := 0; i < num; i++ {
 		for {
-			// tagName := textinput.New("Enter a name: ")
-			// tagName.AutoComplete = textinput.AutoCompleteFromSlice([]string{
-			// "Owner",
-			// "bootcamp",
-			// "expiration_date",
-			// })
-			moduleImpot := textinput.New("Enter a name")
-			moduleImpot.Validate = func(input string) error {
-				if strings.TrimSpace(input) == "" {
-					return fmt.Errorf("can't be empty")
-				}
-
-				return nil
-			}
-			moduleName, err := moduleImpot.RunPrompt()
+			// modules
+			moduleInput := textinput.New("Enter a name")
+			moduleInput.Validate = validateInput
+			moduleName, err := moduleInput.RunPrompt()
 			if err != nil {
 				log.Fatalf("Error %v\n", err)
 			}
-			moduleName = strings.TrimSpace(moduleName)
+			moduleName = path.Clean(strings.TrimSpace(moduleName))
+			if moduleName == "/" {
+				log.Fatal("Invalid name")
+			}
 			dirpath := path.Join(wd, "modules", moduleName)
 			if list[dirpath] {
 				log.Printf("%s already in list", moduleName)
@@ -126,6 +117,46 @@ func main() {
 			}
 		}
 	}
+	return list, names
+}
+
+func main() {
+	if _, err := os.Stat("main.tf"); err == nil {
+		log.Fatal("main.tf already exists")
+	}
+	flag.Usage = Usage
+	flag.Parse()
+	if num == 0 {
+		Usage()
+	}
+
+	list, names := getModules()
+    var tags = make(map[string]string)
+	if defaultTags {
+
+		tagInput := textinput.New("Enter a name: ")
+        valueInput := textinput.New("Enter the value:")
+		tagInput.AutoComplete = textinput.AutoCompleteFromSlice([]string{
+			"Owner",
+			"bootcamp",
+			"expiration_date",
+		})
+		tagInput.Validate = validateInput
+		valueInput.Validate = validateInput
+		tagName, err := tagInput.RunPrompt()
+		tagName = strings.TrimSpace(tagName)
+		if err == nil {
+			log.Fatalf("Error %v\n", err)
+		}
+		fmt.Printf("%s\n", tagName)
+		tagValue, err := valueInput.RunPrompt()
+		tagValue = strings.TrimSpace(tagValue)
+        if err == nil {
+			log.Fatalf("Error %v\n", err)
+		}
+        tags[tagName]= tagValue
+	}
+    fmt.Printf("tags: %v\n", tags)
 	createDirs(list)
 	generateMain(names)
 }
