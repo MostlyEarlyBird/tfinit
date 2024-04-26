@@ -38,7 +38,7 @@ func (yml *Yaml) readConf(filename string) error {
 }
 
 func main() {
-	yml := new(Yaml)
+	// TODO: search with exact extentions (yml/yaml)
 	file, err := filepath.Glob("config.*ml")
 	fmt.Printf("file: %v\n", file)
 	if err != nil {
@@ -48,6 +48,7 @@ func main() {
 		fmt.Printf("Found: %v config files\n", len(file))
 		return
 	}
+	yml := new(Yaml)
 	if err := yml.readConf(file[0]); err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
