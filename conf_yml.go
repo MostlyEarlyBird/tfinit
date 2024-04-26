@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -20,35 +21,32 @@ type Var struct {
 type Mod struct {
 	Vars []Var `yaml:"vars,flow"`
 }
-type Yml struct {
+type Yaml struct {
 	Tags []Tag          `yaml:"tags,flow"`
-	Mods map[string]Mod `yaml:"mods,flow"`
+	Mods map[string]Mod `yaml:"modules,flow"`
 }
 
-func readConf(filename string) (Yml, error) {
+func (yml *Yaml) readConf(filename string) {
 	buf, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatal("file")
 	}
-	c := Yml{}
-	err = yaml.Unmarshal(buf, &c)
+	err = yaml.Unmarshal(buf, &yml)
 	if err != nil {
 		log.Fatalf("in file %q: %v", filename, err)
 	}
-
-	return c, err
 }
 
 func main() {
-	c, err := readConf("conf.yml")
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, tag := range c.Tags {
+	yml := new(Yaml)
+	file, err := filepath.Glob("config.y?(a)ml")
+	yml.readConf("conf.yml")
+	fmt.Printf("yml: %v\n", yml)
+	for _, tag := range yml.Tags {
 		fmt.Printf("tag.Name: %v\n", tag.Name)
 		fmt.Printf("tag.Value: %v\n", tag.Value)
 	}
-	for key, value := range c.Mods {
+	for key, value := range yml.Mods {
 		fmt.Printf("key: %v\n", key)
 		for _, v := range value.Vars {
 			fmt.Printf("v.Name: %v\n", v.Name)

@@ -6,6 +6,7 @@ require (
 	github.com/erikgeiser/promptkit v0.9.0
 	github.com/hashicorp/hcl/v2 v2.20.1
 	github.com/zclconf/go-cty v1.13.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
