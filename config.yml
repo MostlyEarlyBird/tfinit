@@ -1,0 +1,23 @@
+tags:
+  - name: own
+    value: what
+  - name: other
+    value: side
+
+modules:
+  comp:
+    vars:
+      - name: cidr
+        type: string
+        description: test test
+  net:
+    vars:
+      - name: ntest
+        type: string
+        description: test test
+      - name: ntest2
+        type: string
+        description: test test
+
+
+
