@@ -19,6 +19,7 @@ func init() {
 		log.Fatal("Root main.tf already exists")
 	}
 }
+
 func tfFiles() [3]string {
 	return [3]string{"variables.tf", "main.tf", "outputs.tf"}
 }
@@ -59,6 +60,50 @@ func (mod *Mod) writeVars(out *os.File) error {
 	return nil
 }
 
+func (yml *Yaml) generateRoot() error {
+	mainFile := hclwrite.NewEmptyFile()
+	mainBody := mainFile.Body()
+	terraform := mainBody.AppendNewBlock("terraform", nil)
+	trbody := terraform.Body()
+	reqbody := trbody.AppendNewBlock("required_providers", nil).Body()
+	reqbody.SetAttributeValue("aws", cty.ObjectVal(map[string]cty.Value{
+		"source":  cty.StringVal("hashicorp/aws"),
+		"version": cty.StringVal("~> 5.0"),
+	}))
+	mainBody.AppendNewline()
+	provider := mainBody.AppendNewBlock("provider", []string{"aws"}).Body()
+	provider.SetAttributeValue("region", cty.StringVal("ap-south-1"))
+	mainBody.AppendNewline()
+
+	modOut, err := os.Create("variables.tf")
+	defer modOut.Close()
+	for mod_name, mod := range yml.Mods {
+		modBlock := mainBody.AppendNewBlock("module", []string{mod_name}).Body()
+		modBlock.SetAttributeValue("source", cty.StringVal("./modules/"+mod_name))
+		for _, v := range mod.Vars {
+			modBlock.SetAttributeTraversal(v.Name, hcl.Traversal{
+				hcl.TraverseRoot{Name: "var"},
+				hcl.TraverseAttr{Name: v.Name},
+			})
+		}
+		mainBody.AppendNewline()
+		if err != nil {
+			return err
+		}
+	}
+
+	out, err := os.Create("main.tf")
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = out.Write(mainFile.Bytes())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func validateInput(input string) error {
 	if strings.TrimSpace(input) == "" {
 		return fmt.Errorf("can't be empty")
@@ -81,39 +126,6 @@ func validateInput(input string) error {
 // os.Exit(0)
 // }
 
-func generateMain(dirs []string) error {
-	f := hclwrite.NewEmptyFile()
-	rootBody := f.Body()
-	terraform := rootBody.AppendNewBlock("terraform", nil)
-	trbody := terraform.Body()
-	reqbody := trbody.AppendNewBlock("required_providers", nil).Body()
-	reqbody.SetAttributeValue("aws", cty.ObjectVal(map[string]cty.Value{
-		"source":  cty.StringVal("hashicorp/aws"),
-		"version": cty.StringVal("~> 5.0"),
-	}))
-	rootBody.AppendNewline()
-	provider := rootBody.AppendNewBlock("provider", []string{"aws"}).Body()
-	provider.SetAttributeValue("region", cty.StringVal("ap-south-1"))
-	rootBody.AppendNewline()
-
-	for _, dir := range dirs {
-		mod_name := dir[strings.LastIndex(dir, "/")+1:]
-		mod := rootBody.AppendNewBlock("module", []string{mod_name}).Body()
-		mod.SetAttributeValue("source", cty.StringVal("./modules/"+mod_name))
-		rootBody.AppendNewline()
-	}
-
-	out, err := os.Create("main.tf")
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-	_, err = out.Write(f.Bytes())
-	if err != nil {
-		return err
-	}
-	return nil
-}
 func getModules() (map[string]bool, []string) {
 
 	wd, _ := os.Getwd()
