@@ -1,4 +1,4 @@
-module terraform_tree
+module github.com/MostlyEarlyBird/tfinit
 
 go 1.22.2
 
