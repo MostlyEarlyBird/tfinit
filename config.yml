@@ -1,11 +1,11 @@
 tags:
   - name: own
     value: what
-  - name: other
-    value: side
+  - name: foo
+    value: bar
 
 modules:
-  comp:
+  compute:
     vars:
       - name: cidr
         type: string
@@ -15,6 +15,7 @@ modules:
       - name: ntest
         type: string
         description: test test
+
       - name: ntest2
         type: string
         description: test test
