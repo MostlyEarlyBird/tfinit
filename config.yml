@@ -1,3 +1,5 @@
+region: us-east-1
+
 tags:
   - name: own
     value: what
@@ -8,9 +10,9 @@ modules:
   compute:
     vars:
       - name: cidr
-        type: string
+        type: list(string)
         description: test test
-  net:
+  network:
     vars:
       - name: ntest
         type: string
