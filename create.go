@@ -5,9 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
-	"strings"
 
-	"github.com/erikgeiser/promptkit/textinput"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
@@ -53,6 +51,7 @@ func (mod *Mod) writeVars(out *os.File) error {
 	for _, v := range mod.Vars {
 		variable := rootBody.AppendNewBlock("variable", []string{v.Name}).Body()
 		variable.SetAttributeTraversal("type", hcl.Traversal{hcl.TraverseRoot{Name: v.Type}})
+		variable.SetAttributeValue("description", cty.StringVal(v.Description))
 	}
 	if _, err := out.Write(f.Bytes()); err != nil {
 		return err
@@ -62,6 +61,8 @@ func (mod *Mod) writeVars(out *os.File) error {
 
 func (yml *Yaml) generateRoot() error {
 	mainFile := hclwrite.NewEmptyFile()
+	tfVarsFile := hclwrite.NewEmptyFile()
+	tfVarsBody := tfVarsFile.Body()
 	mainBody := mainFile.Body()
 	terraform := mainBody.AppendNewBlock("terraform", nil)
 	trbody := terraform.Body()
@@ -72,11 +73,22 @@ func (yml *Yaml) generateRoot() error {
 	}))
 	mainBody.AppendNewline()
 	provider := mainBody.AppendNewBlock("provider", []string{"aws"}).Body()
-	provider.SetAttributeValue("region", cty.StringVal("ap-south-1"))
+	provider.SetAttributeValue("region", cty.StringVal(yml.Region))
+	if len(yml.Tags) > 0 {
+		tagsBlock := provider.AppendNewBlock("default_tags", nil).Body()
+		tags := map[string]cty.Value{}
+		for _, t := range yml.Tags {
+			tags[t.Name] = cty.StringVal(t.Value)
+		}
+		tagsBlock.SetAttributeValue("tags", cty.ObjectVal(tags))
+	}
 	mainBody.AppendNewline()
 
 	modOut, err := os.Create("variables.tf")
 	defer modOut.Close()
+	if err != nil {
+		return err
+	}
 	for mod_name, mod := range yml.Mods {
 		modBlock := mainBody.AppendNewBlock("module", []string{mod_name}).Body()
 		modBlock.SetAttributeValue("source", cty.StringVal("./modules/"+mod_name))
@@ -85,116 +97,29 @@ func (yml *Yaml) generateRoot() error {
 				hcl.TraverseRoot{Name: "var"},
 				hcl.TraverseAttr{Name: v.Name},
 			})
+			tfVarsBody.SetAttributeValue(v.Name, cty.StringVal("placeholder"))
 		}
+		mod.writeVars(modOut)
 		mainBody.AppendNewline()
-		if err != nil {
-			return err
-		}
 	}
 
 	out, err := os.Create("main.tf")
+	defer out.Close()
 	if err != nil {
 		return err
 	}
-	defer out.Close()
 	_, err = out.Write(mainFile.Bytes())
 	if err != nil {
 		return err
 	}
+	varsOut, err := os.Create("terraform.tfvars")
+	defer varsOut.Close()
+	if err != nil {
+		return err
+	}
+	_, err = varsOut.Write(tfVarsFile.Bytes())
+	if err != nil {
+		return err
+	}
 	return nil
-}
-
-func validateInput(input string) error {
-	if strings.TrimSpace(input) == "" {
-		return fmt.Errorf("can't be empty")
-	} else {
-		return nil
-	}
-}
-
-// var num int
-// var defaultTags bool
-
-// func init() {
-// flag.IntVar(&num, "n", 0, "number of modules")
-// flag.BoolVar(&defaultTags, "t", false, "add default tags")
-
-// }
-// func Usage() {
-// fmt.Printf("Usage: %s [-t] [-n int] \n", path.Base(os.Args[0]))
-// flag.PrintDefaults()
-// os.Exit(0)
-// }
-
-func getModules() (map[string]bool, []string) {
-
-	wd, _ := os.Getwd()
-	names := []string{}
-
-	num := 3
-	var list = make(map[string]bool)
-	for i := 0; i < num; i++ {
-		for {
-			// modules
-			moduleInput := textinput.New("Enter a name")
-			moduleInput.Validate = validateInput
-			moduleName, err := moduleInput.RunPrompt()
-			if err != nil {
-				log.Fatalf("Error %v\n", err)
-			}
-			moduleName = path.Clean(strings.TrimSpace(moduleName))
-			if moduleName == "/" {
-				log.Fatal("Invalid name")
-			}
-			dirpath := path.Join(wd, "modules", moduleName)
-			if list[dirpath] {
-				log.Printf("%s already in list", moduleName)
-			} else if _, err := os.Stat(dirpath); err == nil {
-				log.Printf("Directory by the name %s already exist", moduleName)
-
-			} else {
-				list[dirpath] = true
-				names = append(names, moduleName)
-				break
-			}
-		}
-	}
-	return list, names
-}
-
-func teset() {
-	// flag.Usage = Usage
-	// flag.Parse()
-	// if num == 0 {
-	// Usage()
-	// }
-
-	// list, names := getModules()
-	// var tags = make(map[string]string)
-	// if defaultTags {
-	// tagInput := textinput.New("Enter the tag name:")
-	// valueInput := textinput.New("Enter the value:")
-	// tagInput.AutoComplete = textinput.AutoCompleteFromSlice([]string{
-	// "Owner",
-	// "bootcamp",
-	// "expiration_date",
-	// })
-	// tagInput.Validate = validateInput
-	// valueInput.Validate = validateInput
-	// tagName, err := tagInput.RunPrompt()
-	// tagName = strings.TrimSpace(tagName)
-	// if err != nil {
-	// log.Fatalf("Error %v\n", err)
-	// }
-	// fmt.Printf("%s\n", tagName)
-	// tagValue, err := valueInput.RunPrompt()
-	// tagValue = strings.TrimSpace(tagValue)
-	// if err != nil {
-	// log.Fatalf("Error %v\n", err)
-	// }
-	// tags[tagName] = tagValue
-	// }
-	// fmt.Printf("tags: %v\n", tags)
-
-	// generateMain(names)
 }
