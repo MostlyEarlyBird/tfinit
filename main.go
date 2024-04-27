@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/MostlyEarlyBird/tfinit/terraformtree"
 	"os"
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
+
+var temp = terraformtree.Temp{Temp: 3}
 
 type Tag struct {
 	Name  string
@@ -25,6 +28,26 @@ type Yaml struct {
 	Mods map[string]Mod `yaml:"modules,flow"`
 }
 
+var config string
+
+func init() {
+	// TODO: search with exact extentions (yml/yaml)
+	file, err := filepath.Glob("config.*ml")
+	fmt.Printf("file: %v\n", file)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return
+	} else if len(file) == 0 || len(file) > 1 {
+		fmt.Printf("Found: %v config files\n", len(file))
+		return
+	} else {
+		config = file[0]
+	}
+}
+
+func tfFiles() [3]string {
+	return [3]string{"variables.tf", "main.tf", "outputs.tf"}
+}
 func (yml *Yaml) readConf(filename string) error {
 	buf, err := os.ReadFile(filename)
 	if err != nil {
@@ -36,22 +59,9 @@ func (yml *Yaml) readConf(filename string) error {
 	}
 	return nil
 }
-func tfFiles() [3]string {
-	return [3]string{"variables.tf", "main.tf", "outputs.tf"}
-}
 func main() {
-	// TODO: search with exact extentions (yml/yaml)
-	file, err := filepath.Glob("config.*ml")
-	fmt.Printf("file: %v\n", file)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return
-	} else if len(file) == 0 || len(file) > 1 {
-		fmt.Printf("Found: %v config files\n", len(file))
-		return
-	}
 	yml := new(Yaml)
-	if err := yml.readConf(file[0]); err != nil {
+	if err := yml.readConf(config); err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
 	}
