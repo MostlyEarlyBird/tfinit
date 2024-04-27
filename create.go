@@ -101,6 +101,7 @@ func (yml *Yaml) generateRoot() error {
 		}
 		mod.writeVars(modOut)
 		mainBody.AppendNewline()
+		tfVarsBody.AppendNewline()
 	}
 
 	out, err := os.Create("main.tf")
