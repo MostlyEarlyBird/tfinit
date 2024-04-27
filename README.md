@@ -1,4 +1,4 @@
-The appliction create a directory with tf files for each module.
+The appliction creates a directory with tf files for each module.
 
 The following files will be created in the directories:
 - main.tf
@@ -8,14 +8,7 @@ The following files will be created in the directories:
 
 [^1]: The directory in which the appliction was executed
 
-# Usage
-````
-Usage: terraform_tree argument ...
-  -n int
-        number of modules
-````
-
-## Example for a project structure 
+## Example for a project structure
 ````
 ubuntu@hostname:~/project$ ../terraform_tree/tr -n 2
 Enter a name: network
@@ -43,12 +36,9 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.16"
+      version = "~> 5.0"
     }
   }
-  
-  required_version = ">= 1.2.0"
-
 }
 
 provider "aws" {
@@ -66,4 +56,4 @@ module "compute" {
 
 # TO-DO
 
-- [ ] limit number of modules  
+- [ ] limit number of modules
