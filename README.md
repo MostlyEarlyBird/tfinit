@@ -54,6 +54,3 @@ module "compute" {
 }
 ````
 
-# TO-DO
-
-- [ ] limit number of modules
