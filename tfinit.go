@@ -60,18 +60,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("err %v\n", err)
 	}
+
 	yml := new(Yaml)
 	if err := yml.readConf(config); err != nil {
 		log.Fatalf("err %v\n", err)
 	}
-	// errCh := make(chan error, (len(yml.Mods) + 1))
-	errgp, ctx := errgroup.WithContext(context.Background())
-	errgp.Go(yml.generateRoot)
 
-	// if err := yml.generateRoot(); err != nil {
-	// 	log.Fatalf("err: %v\n", err)
-	// }
-	_ = ctx
+	errgp, _ := errgroup.WithContext(context.Background())
+	errgp.Go(yml.generateRoot)
 
 	for key, value := range yml.Mods {
 		key, value := key, value
@@ -79,8 +75,8 @@ func main() {
 			err := value.CreateModule(key)
 			return err
 		})
-
 	}
+
 	if err := errgp.Wait(); err != nil {
 		log.Fatalf("err: %v\n", err)
 	}
