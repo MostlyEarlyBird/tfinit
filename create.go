@@ -51,7 +51,9 @@ func (mod *Mod) writeVars(out *os.File) error {
 	for _, v := range mod.Vars {
 		variable := rootBody.AppendNewBlock("variable", []string{v.Name}).Body()
 		variable.SetAttributeTraversal("type", hcl.Traversal{hcl.TraverseRoot{Name: v.Type}})
-		variable.SetAttributeValue("description", cty.StringVal(v.Description))
+		if v.Description != "" {
+			variable.SetAttributeValue("description", cty.StringVal(v.Description))
+		}
 	}
 	if _, err := out.Write(f.Bytes()); err != nil {
 		return err
