@@ -5,7 +5,20 @@ The appliction creates a directory with tf files and variables for each module. 
 - outputs.tf In the project "root" directory[^1] : main.tf file with the modules import
 [^1]: The directory in which the appliction was executed
 
-The progrem will koo
+The program searches for a file called config.yml/yaml and retrieves the project's structure from it.
+The YAML file format should be as follows:
+````yaml
+region: <The aws region>(Example :us-east-1)
+
+tags: <default_tags for the provider>
+  - name: <The tag key>
+    value: <The tag value>
+    ...
+modules:
+
+
+````
+
 
 ## Example for a project structure
 ````
