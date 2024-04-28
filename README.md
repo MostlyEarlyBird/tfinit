@@ -25,10 +25,11 @@ modules:
 
 
 # optional
-tags: <default_tags for the provider>
+# default_tags for the provider
+tags:
   - name: <The tag key>
     value: <The tag value>
-    ...
+
 
 
 ````
@@ -43,20 +44,48 @@ Enter a name: compute
 2024/04/18 20:58:08 /home/ubuntu/project/modules/network
 
 project/
+├── config.yml
 ├── main.tf
-└── modules
-    ├── compute
-    │   ├── main.tf
-    │   ├── outputs.tf
-    │   └── variables.tf
-    └── network
-        ├── main.tf
-        ├── outputs.tf
-        └── variables.tf
+├── modules
+│   ├── compute
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   └── network
+│       ├── main.tf
+│       ├── outputs.tf
+│       └── variables.tf
+├── terraform.tfvars
+└── variables.tf
 
 ````
+### config.yaml
+````yaml
+region: us-east-1
 
-## project/main.tf
+tags:
+  - name: Environment
+    value: Test
+  - name: project
+    value: test
+
+modules:
+  network:
+    vars:
+      - name: availability_zones
+        type: list(string)
+
+  compute:
+    vars:
+      - name: instence_type
+        type: string
+        description: The instance type to use for the deployment
+
+      - name: number_of_instances
+        type: number
+````
+
+### project/main.tf
 ````hcl
 terraform {
   required_providers {
@@ -68,15 +97,63 @@ terraform {
 }
 
 provider "aws" {
-  region = "ap-south-1"
+  region = "us-east-1"
+  default_tags {
+    tags = {
+      Environment = "Test"
+      project     = "test"
+    }
+  }
 }
 
 module "network" {
-  source = "./modules/network"
+  source            = "./modules/network"
+  availability_zones = var.availability_zones
 }
 
 module "compute" {
-  source = "./modules/compute"
+  source              = "./modules/compute"
+  instence_type       = var.instence_type
+  number_of_instances = var.number_of_instances
 }
 ````
 
+### project/variables.tf
+````hcl
+variable "availability_zones" {
+  type = list(string)
+}
+
+variable "instence_type" {
+  type        = string
+  description = "The instance type to use for the deployment"
+}
+variable "number_of_instances" {
+  type = number
+}
+````
+
+### project/terraform.tfvars
+````hcl
+availability_zones = "placeholder"
+
+instence_type       = "placeholder"
+number_of_instances = "placeholder"
+````
+
+### modules/network/variables.tf
+````hcl
+variable "availability_zones" {
+  type = list(string)
+}
+````
+### modules/compute/variables.tf
+````hcl
+variable "instence_type" {
+  type        = string
+  description = "The instance type to use for the deployment"
+}
+variable "number_of_instances" {
+  type = number
+}
+````

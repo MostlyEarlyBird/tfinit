@@ -12,7 +12,6 @@ import (
 )
 
 func init() {
-	fmt.Println("create")
 	if _, err := os.Stat("main.tf"); err == nil {
 		log.Fatal("Root main.tf already exists")
 	}

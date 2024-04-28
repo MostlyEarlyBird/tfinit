@@ -1,0 +1,22 @@
+region: us-east-1
+
+tags:
+  - name: Environment
+    value: Test
+  - name: project
+    value: test
+
+modules:
+  compute:
+    vars:
+      - name: availability_zones
+        type: list(string)
+
+  network:
+    vars:
+      - name: instence_type
+        type: string
+        description: The instance type to use for deployment
+      - name: number_of_instances
+        type: number
+
