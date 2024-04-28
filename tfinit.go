@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 )
 
@@ -62,12 +64,24 @@ func main() {
 	if err := yml.readConf(config); err != nil {
 		log.Fatalf("err %v\n", err)
 	}
-	if err := yml.generateRoot(); err != nil {
-		log.Fatalf("err: %v\n", err)
-	}
+	// errCh := make(chan error, (len(yml.Mods) + 1))
+	errgp, ctx := errgroup.WithContext(context.Background())
+	errgp.Go(yml.generateRoot)
+
+	// if err := yml.generateRoot(); err != nil {
+	// 	log.Fatalf("err: %v\n", err)
+	// }
+	_ = ctx
+
 	for key, value := range yml.Mods {
-		if err := value.CreateModule(key); err != nil {
-			log.Fatalf("err: %v\n", err)
-		}
+		key, value := key, value
+		errgp.Go(func() error {
+			err := value.CreateModule(key)
+			return err
+		})
+
+	}
+	if err := errgp.Wait(); err != nil {
+		log.Fatalf("err: %v\n", err)
 	}
 }
