@@ -37,12 +37,6 @@ tags:
 
 ## Example for a project structure
 ````
-ubuntu@hostname:~/project$ ../terraform_tree/tr -n 2
-Enter a name: network
-Enter a name: compute
-2024/04/18 20:58:08 /home/ubuntu/project/modules/compute
-2024/04/18 20:58:08 /home/ubuntu/project/modules/network
-
 project/
 ├── config.yml
 ├── main.tf
