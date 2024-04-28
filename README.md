@@ -1,12 +1,11 @@
-The appliction creates a directory with tf files for each module.
-
-The following files will be created in the directories:
+# tfinit
+The appliction creates a directory with tf files and variables for each module. The following files will be created in the directories:
 - main.tf
 - variables.tf
-- outputs.tf
-- In the project "root" directory[^1] : main.tf file with the modules import
-
+- outputs.tf In the project "root" directory[^1] : main.tf file with the modules import
 [^1]: The directory in which the appliction was executed
+
+The progrem will koo
 
 ## Example for a project structure
 ````
