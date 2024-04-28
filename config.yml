@@ -16,7 +16,6 @@ modules:
     vars:
       - name: ntest
         type: string
-        description: test test
 
       - name: ntest2
         type: string
